@@ -1,0 +1,386 @@
+<!DOCTYPE html> 
+<html> 
+<head>
+  <link rel="stylesheet" type="text/css" href="/static/scene.css">
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+  <!-- <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> -->
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.0/themes/redmond/jquery-ui.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+  <script src="/static/jquery.csv.js"></script>
+  <script src="/static/segment.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <style>
+#prev-segment {
+
+  top: -24px;
+  left: 182px;
+    height: 28px;
+    width: 44px;
+    display: inline;
+
+}
+
+#next-segment {
+
+  top: -24px;
+  left: 183px;
+  height: 28px;
+    width: 44px;
+    display:inline;
+}
+
+  #segment-info  {
+    z-index: 100;  
+  border:1px solid #d3d3d3;
+
+  width:275px;
+  position:absolute;
+  left: 1096px;
+
+  height:202px;
+  padding-left:5px;
+
+  padding-right:5px;
+  padding-bottom:10px;
+    padding-top:10px;
+  border-radius: 3px;
+    background-color: rgba(255,255,255,0.7);
+
+}
+
+#file-info  {
+    z-index: 100;	
+  
+  border:1px solid #d3d3d3;   
+  height:265px;
+  width:275px;
+  position:absolute;
+  left: 1096px;
+  top:238px;
+  padding-left:5px;
+    padding-top:10px;
+  padding-right:5px;
+  border-radius: 3px;
+  background-color: white; 
+    background-color: rgba(255,255,255,0.7);
+}
+ </style>
+</head>
+<body> 
+<div id="segment-info">
+
+
+</div>
+<div id="file-info"></div>
+<video controls id="myVideo" width="1080">
+  <source src="https://storage.googleapis.com/set-videos/test/mlb.mp4" type="video/mp4">
+  <!-- <source src="https://storage.googleapis.com/set-videos/output1.mp4" type="video/mp4"> -->
+  Your browser does not support HTML5 video.
+</video>
+<div><canvas id="myCanvas" width="1078" height="8">no canvas</canvas></div>
+<div id="timeline"></div>
+<div id="current-time"></div> 
+<div id="speed-control"><label>playback speed: <input type="range" step="0.25" min="0.25" max="10" value="1" id="rateSlider"></label> <span id="rateOutput" aria-live="polite"></span></div>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+/*eslint-env jquery */
+/*globals google */
+var vid = document.getElementById("myVideo"); 
+var cur = 0;
+var ratio;
+var media_filename = "mlb.mp4";
+var scenes_url = "static/mlb_visual_scenes.csv"; 
+var scenes=[];
+ 
+setInterval(clockUpdate, 10);
+
+function clockUpdate() {
+  var time = new Date(0,0,0,0,0,vid.currentTime);
+  if (scenes.length !== 0) {
+  //if (typeof scenes !=="undefined") {
+    scenes.forEach(function(e,i) {
+    
+      time = new Date(0,0,0,0,0,vid.currentTime);
+      var start_time = new Date(0,0,0,0,0,e[0]/1000);
+      var end_time = new Date(0,0,0,0,0,e[1]/1000);
+      
+      if (time>=start_time && time<end_time) {
+        if (!vid.paused) {
+            if (e.segment==="remove") {
+              var st = cur+1;
+              // find next playable segment
+              for (var j=st; j<scenes.length; ++j) {
+                if (scenes[j].segment !== "remove") {
+                vid.currentTime = scenes[j][0]/1000;
+                break;
+                }
+              }
+            }
+        }
+        if (cur !== i) {                                  
+          cur = i;
+          updateSegmentInfo();
+        }
+       }
+    });
+  }
+
+  //show clock
+  $("#current-time").html(("00" + time.getHours()).slice(-2)+":"+("00" + time.getMinutes()).slice(-2)+":"+("00" + time.getSeconds()).slice(-2));
+  var c = document.getElementById("myCanvas");
+  var ctx = c.getContext("2d");
+  var x = vid.currentTime * ratio;
+  // show progress bar  
+  ctx.fillStyle = "#fff";
+  ctx.clearRect(0, 0, 1080, 8);
+  ctx.fillRect(0, 0, 1080, 8);
+  ctx.fillStyle = "#777";
+  var fillVal = Math.min(Math.max(x / 1080, 0), 1);
+  ctx.fillRect(0, 0, fillVal * 1080, 8);
+}
+   
+
+function prev() {
+  cur -= 1;
+  if (cur < 0) { 
+    cur = 0;
+  }
+  vid.currentTime = scenes[cur][0]/1000; 
+  updateSegmentInfo();
+}
+
+
+function seek() {  
+  cur += 1;
+  if (cur === scenes.length) {
+    cur = 0;
+  }
+  vid.currentTime = scenes[cur][0]/1000; 
+  updateSegmentInfo();
+} 
+  
+
+$(document).ready(function() {
+  google.charts.load("current", {"packages":["timeline"]});	
+  
+  $("#segment-info").draggable();
+  $("#file-info").draggable();
+  $("#speed-control").draggable();
+  
+  var video = document.getElementById("myVideo");
+  var rateOutput = document.getElementById("rateOutput");
+  var rateSlider = document.getElementById("rateSlider");
+        
+  rateSlider.onchange = function() {
+     // When the slider is moved, changed the video's playback rate
+     video.playbackRate = rateSlider.value;
+  };
+        
+  video.onplay = function() {
+    // We can only change the playbackRate once the video has started playing
+    video.playbackRate = rateSlider.value;
+  };
+        
+  video.onratechange = function() {
+     // When the playback rate changes, display the new value
+     rateOutput.textContent = video.playbackRate+"x";
+  };
+        
+  rateOutput.textContent = rateSlider.value + "x";
+  // set time and wait for video load 
+  var i = setInterval(function() {
+	  if(vid.readyState > 0) {
+		  var minutes = parseInt(vid.duration / 60, 10);
+		  var seconds = vid.duration % 60;
+
+	      // (Put the minutes and seconds in the display)
+          $("#duration").html(minutes+"m "+seconds+"s");
+    
+          // need ratio for video segments calculation
+          ratio =  1080 / vid.duration;
+		  clearInterval(i);
+
+          if (scenes.length === 0) {	
+          $.ajax({
+            type: "GET",
+            url: scenes_url,
+            dataType: "text",
+            success: function(data) {processData(data);}
+          });
+        }
+	  }
+  }, 200);    
+});
+
+function drawScene(item) {
+  item.segment = "keep";
+  item.reviewed = false;
+}
+  
+function drawChart(scenes) {
+ var chart = new google.visualization.Timeline(document.getElementById("timeline"));
+ var data = new google.visualization.DataTable();
+     data.addColumn({ type: "string", id: "scenes" });
+     data.addColumn({ type: "string", id: "segment" });
+     data.addColumn({ type: "datetime", id: "Start" });
+     data.addColumn({ type: "datetime", id: "End" });
+ scenes.forEach(function(e,i) {    
+   var start = new Date(0,0,0,0,0,e[0]/1000);
+   var end = new Date(0,0,0,0,0,e[1]/1000);
+   var row = ["Scenes", "segment #"+(i+1)+" "+start.getHours()+":"+start.getMinutes()+":"+start.getSeconds()
+             +" - "+end.getHours()+":"+end.getMinutes()+":"+end.getSeconds(), start, end];
+   data.addRow(row);    
+ });
+    
+ var options = {
+   timeline: { 
+     showRowLabels: false,
+     showBarLabels: false,
+     barLabelStyle: {fontName: "Arial", fontSize: "12"},
+     rowLabelStyle: {fontName: "Arial", fontSize: "12"}
+     },
+     colors: new Array(),  
+     width: 1080,
+  };
+
+  scenes.forEach(function(e) {
+    options.colors.push(rgbToHex(e[2], e[3], e[4]));
+  });
+
+
+ // The select handler. Call the chart's getSelection() method
+ function selectHandler() {
+   var selectedItem = chart.getSelection(); 
+      cur = selectedItem[0].row - 1; // seek increments
+      seek(); 
+ }
+  // Listen for the 'select' event, and call my function selectHandler() when
+  // the user selects something on the chart.
+  google.visualization.events.addListener(chart, "select", selectHandler);
+  chart.draw(data,options);  
+}
+  
+function processData(allText) {
+
+   console.log(allText);
+   scenes = $.csv.toArrays(allText);
+
+   google.charts.setOnLoadCallback(drawChart(scenes));
+   scenes.forEach(drawScene);
+   updateSegmentInfo();
+}  
+
+
+document.onkeydown = function(e) {
+
+    switch (e.keyCode) {
+        case 37:
+            $("#prev").click();
+            break;
+       case 38:
+            $("#prev").click();
+            break;            
+        case 39:
+            $("#next").click();
+            break;
+        case 40:
+            $("#next").click();
+            break;
+        case 75: // the letter k
+            scenes[cur].segment = "keep";
+            updateSegmentInfo();
+            break;
+        case 82: // the letter r
+            scenes[cur].segment = "remove";
+            updateSegmentInfo();
+            break;
+        case 69: // the letter e
+            scenes[cur].segment = "exclude";
+            updateSegmentInfo();
+            break;
+             
+    }
+    //e.preventDefault();
+};
+
+
+function componentToHex(c) {
+    var cInt = Math.floor(c * 255);
+    var hex = cInt.toString(16);
+    return hex.length === 1 ? "0" + hex : hex;
+}
+
+function rgbToHex(r, g, b) {
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+
+
+function updateFileInfo() {
+	if(vid.readyState > 0) {
+ 		//var minutes = parseInt(vid.duration / 60, 10);
+		//var seconds = vid.duration % 60;
+      var duration = new Date(0,0,0,0,0,vid.duration);
+      var duration_text = "<br>original duration: <b>"+("00" + duration.getHours()).slice(-2)+":"+("00" + duration.getMinutes()).slice(-2)+":"+("00" + duration.getSeconds()).slice(-2)+"</b>";
+
+    $("#file-info").html("<b>Filename</b>: "+media_filename+"</b><br>"+duration_text);
+    
+    var cut_duration = 0;
+    var segments_removed = 0;
+    var segments_excluded = 0;
+    var segments_reviewed = 0;
+    scenes.forEach(function(e) {
+    	
+      if (e.reviewed === true) {
+      	segments_reviewed += 1;
+      } 	
+      if (e.segment !== "remove") {
+        cut_duration += (e[1]- e[0])/1000;
+        if (e.segment === "exclude") {
+          segments_excluded += 1;
+        }
+      }
+      else {
+         segments_removed += 1;
+      }
+    });
+    var cut_duration_date = new Date(0,0,0,0,0,cut_duration);
+    var cur_duration_text = "<br>new duration: <b>"+("00" + cut_duration_date.getHours()).slice(-2)+":"+("00" + cut_duration_date.getMinutes()).slice(-2)+":"+("00" + cut_duration_date.getSeconds()).slice(-2)+"</b>";
+    
+    $("#file-info").append(cur_duration_text + "<br>segments removed: <b>"+segments_removed+"</b><br>segments excluded: <b>"+segments_excluded+"</b><br>segments reviewed: <b>"+segments_reviewed+"</b>"+" of "+(scenes.length+1));
+    $("#file-info").append("<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button class=\"ui-button ui-widget ui-corner-all\" onclick=\"post()\" id=\"post-btn\">Post to YouTube</button>");
+    var html = "<br><br>&nbsp;<input type=\"checkbox\" name=\"checkbox-1\" id=\"checkbox-1\"><label for=\"checkbox-1\">upload video</label>";
+    html +="<br>&nbsp;<input type=\"checkbox\" name=\"checkbox-2\" id=\"checkbox-2\"><label for=\"checkbox-2\">apply exclusions to reference file</label>";
+    $("#file-info").append(html);
+  }
+}
+
+function updateSegmentInfo() {
+
+   var html = "<b>Segment</b>: "+(cur+1)+" of <small>"+(scenes.length+1)+"</small><br>";
+   html += '<button id="prev-segment" onclick="prev()" class="ui-button ui-widget ui-corner-all ui-button-icon-only" ><span class="ui-icon ui-icon-arrowthick-1-w"></span></button>';
+   html += '<button id="next-segment" onclick="seek()" class="ui-button ui-widget ui-corner-all ui-button-icon-only" ><span class="ui-icon ui-icon-arrowthick-1-e"></span></button>';
+   $("#segment-info").html(html);
+
+  var start_time = new Date(0,0,0,0,0,scenes[cur][0]/1000);
+  var end_time = new Date(0,0,0,0,0,scenes[cur][1]/1000);
+  var duration = new Date(0,0,0,0,0,(scenes[cur][1]- scenes[cur][0])/1000);
+  var rgb = rgbToHex(scenes[cur][2], scenes[cur][3], scenes[cur][4]);  
+  var duration_text = "<br>duration: <b>"+("00" + duration.getHours()).slice(-2)+":"+("00" + duration.getMinutes()).slice(-2)+":"+("00" + duration.getSeconds()).slice(-2)+"</b>";
+  var start_end_text = "<br><br>start-end: <b>"+ ("00" + start_time.getHours()).slice(-2)+":"+("00" + start_time.getMinutes()).slice(-2)+":"+("00" + start_time.getSeconds()).slice(-2) + " - "+("00" + end_time.getHours()).slice(-2)+":"+("00" + end_time.getMinutes()).slice(-2)+":"+("00" +end_time.getSeconds()).slice(-2)+"</b>";
+  $("#segment-info").append(duration_text+start_end_text);
+  $("#segment-info").append("<br><br>rgb score:<div style=\"padding:5px;display: inline;text-align:center;width:240px;color:white;background-color:"+rgb+"\">"+rgb+"</div>");
+  $("#segment-info").append("<br><br><br>&nbsp;&nbsp<select id=\"segment-action\" class=\"segment-select\"><option value=\"keep\">keep</option><option value=\"remove\">remove</option><option value=\"exclude\"><u>exclude</option></select><br>");
+ 
+  // set UI selector and update
+  $(".segment-select").val(scenes[cur].segment).change();
+  $(".segment-select").Segment(); 
+  updateFileInfo();
+  
+  // update reviewed segment
+  scenes[cur].reviewed=true;
+
+}
+</script> 
+</body> 
+</html>

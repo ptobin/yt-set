@@ -1,0 +1,126 @@
+<!DOCTYPE html> 
+<html> 
+<head>
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.indigo-pink.min.css">
+<script defer src="https://code.getmdl.io/1.2.1/material.min.js"></script>
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+ 
+<style>
+</style> 
+</head> 
+  <main>
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+  <header class="mdl-layout__header">
+    <div class="mdl-layout__header-row">
+      <!-- Title -->
+      <span class="mdl-layout-title">SET - Configuration</span>
+      <!-- Add spacer, to align navigation to the right -->
+      <div class="mdl-layout-spacer"></div>
+      <!-- Navigation. We hide it in small screens. -->
+      <nav class="mdl-navigation mdl-layout--large-screen-only">
+        <a class="mdl-navigation__link" href=""></a>
+        <a class="mdl-navigation__link" href=""></a>
+        <a class="mdl-navigation__link" href=""></a>
+ 
+      </nav>
+    </div>
+  </header>
+  <div class="mdl-layout__drawer">
+    <span class="mdl-layout-title">SET</span>
+    <nav class="mdl-navigation">
+          <a class="mdl-navigation__link" href="../intro">SET Intro</a>    
+          <a class="mdl-navigation__link" href="../detect">Detect Segments</a>
+      <a class="mdl-navigation__link" href="">Edit Segment</a>
+      <a class="mdl-navigation__link" href="../deliver">Deliver to YouTube</a>
+
+  
+    </nav>
+  </div> 
+  
+  <div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--8-col">
+  
+
+		<form action="#">
+		  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+		    <input class="mdl-textfield__input" type="text" value="set-cloud" id="sample3">
+		    <label class="mdl-textfield__label" for="sample3">Google Cloud Folder</label>
+		  </div>
+		</form>
+ 
+		<table class="mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow--2dp">
+		  <thead>
+		    <tr>
+		      <th class="mdl-data-table__cell--non-numeric">Filename</th>
+		      <th>Detected</th>
+		      <th>Processed</th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		    <tr>
+		      <td class="mdl-data-table__cell--non-numeric">MM41916160001</td>
+		      <td>No</td>
+		      <td>No</td>
+		    </tr>
+		    <tr>
+		      <td class="mdl-data-table__cell--non-numeric">MM41916160002</td>
+		      <td>No</td>
+		      <td>No</td>
+		    </tr>
+		    <tr>
+		      <td class="mdl-data-table__cell--non-numeric">MM41916160003</td>
+		      <td>No</td>
+		      <td>No</td>
+		    </tr>
+		    <tr>
+		      <td class="mdl-data-table__cell--non-numeric">MM41916160004</td>
+		      <td>No</td>
+		      <td>No</td>
+		    </tr>
+		    <tr>
+		      <td class="mdl-data-table__cell--non-numeric">MM41916160005</td>
+		      <td>No</td>
+		      <td>No</td>
+		    </tr>
+		
+		    <tr>
+		      <td class="mdl-data-table__cell--non-numeric">mlb</td>
+		      <td>Yes</td>
+		      <td>No</td>
+		    </tr>
+		  </tbody>
+		</table>
+        <br>
+        <button id="continue" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored mdl-color-text--white">Continue</button>
+  
+  	</div>
+
+  </div>
+  
+ </main>
+ <script>
+          //<a href="/video/MM41916160001" target="_blank" id="continue2" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored mdl-color-text--white">Continue</a>
+var sel;
+var val;
+
+ $(document).on("click", ".mdl-checkbox__ripple-container.mdl-js-ripple-effect.mdl-ripple--center", function() {
+ 	sel = $(this).parents().eq(2).children().eq(1).text();
+
+ 	console.log(  sel );
+});
+ $( "#continue" ).click(function() {
+ 	
+ 	val = $( "input:checked" ).val();
+ 	console.log(val);
+ 	
+ 	if (val === "on") {
+ 	   window.location = "/video/"+ sel;
+    }
+
+});
+ //val = $( "table:checkbox:checked" ).val();
+ //console.log(val);
+ //mdl-data-table--selectable
+ </script>
+ </html>

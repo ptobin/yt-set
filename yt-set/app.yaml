@@ -1,0 +1,11 @@
+# This file specifies your Python application's runtime configuration.
+# See https://cloud.google.com/appengine/docs/managed-vms/config for details.
+
+runtime: custom
+#vm: true
+#env_variables:
+#    PYTHONUNBUFFERED: 1
+
+#added according to new changes implemented by Bill 
+env: flex
+

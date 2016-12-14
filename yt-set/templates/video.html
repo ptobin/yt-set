@@ -1,0 +1,757 @@
+<!doctype html>
+<head>
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.indigo-pink.min.css">
+<script defer src="https://code.getmdl.io/1.2.1/material.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<script src="/static/js/jquery.csv.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="/static/js/Scene.js"></script>
+<script src="/static/js/SceneProcessor.js"></script>	
+
+
+
+
+<style>
+
+
+.set-card-square {
+	height: 285px;
+}
+
+#file-container {
+	height: 310px;
+}
+
+.mdl-card__title {	
+  color: #fff;
+  background: #46B6AC;
+  height: 50px;
+}
+.mdl-card__title-text {
+  font-size: 100%;
+  font-weight: bold;
+}
+
+.mdl-card__actions {
+   height: 60px;
+   text-align: center;	
+}
+
+#segment-support-text {
+  width:100%;
+  height:160px;
+}
+
+#radios {
+  position: relative;
+  top:10px;	
+}
+
+#timeline {
+  position: relative;
+  top: -8px;
+}
+
+
+#player-controls {
+  background:rgba(255,255,255,0.5);
+  position: relative;
+  width: 175px;
+  top: -322px;
+  left: 10px;
+  border-radius: 5px;
+  z-index: 10;
+  text-align:center;
+  padding: 2px;
+  border: solid 1px #eee;
+}
+
+#progress-bar {
+	z-index:20;
+	height:7px;
+	position:relative;
+	cursor:pointer;
+	background: rgba(0,0,0,0.4); /* fallback */
+	box-shadow: 0 1px 0 rgba(255,255,255,0.1), inset 0 1px 1px rgba(0,0,0,1);
+	border-radius:10px;
+	width:100%;		
+}
+
+#timeBar{
+    height:7px;
+	z-index:20;
+	background: -webkit-linear-gradient(top, rgba(107,204,226,1) 0%,rgba(29,163,208,1) 100%);
+	box-shadow: 0 0 7px rgba(107,204,226,.5);
+}
+
+
+#segment-status-bar {
+	position: relative;
+	top: -182px;
+	
+}
+
+
+#current-time{
+  position: relative;
+  width: 80px;
+  left: 41px;
+  z-index: 20;
+  text-align:center;
+  padding: 2px;
+
+ }
+#reviewed-badge {
+	position: relative;
+	left: 90px;
+	top: 2px;
+}
+
+</style> 
+</head> 
+<!-- No header, and the drawer stays open on larger screens (fixed drawer). -->
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+  <header class="mdl-layout__header">
+    <div class="mdl-layout__header-row">
+      <!-- Title -->
+      <span class="mdl-layout-title">{{ name }}</span>
+      <!-- Add spacer, to align navigation to the right -->
+      <div class="mdl-layout-spacer"></div>
+      <!-- Navigation. We hide it in small screens. -->
+      <nav class="mdl-navigation mdl-layout--large-screen-only">
+        <a class="mdl-navigation__link" href=""></a>
+        <a class="mdl-navigation__link" href=""></a>
+        <a class="mdl-navigation__link" href=""></a>
+ 
+      </nav>
+    </div>
+  </header>
+  <div class="mdl-layout__drawer">
+    <span class="mdl-layout-title">SET</span>
+    <nav class="mdl-navigation">
+      <a class="mdl-navigation__link" href="../intro">SET Intro</a>    
+      <a class="mdl-navigation__link" href="../detect">Detect Segments</a>
+      <a class="mdl-navigation__link" href="">Edit Segment</a>
+      <a class="mdl-navigation__link" href="../deliver">Deliver to YouTube</a>
+      <a class="mdl-navigation__link" href="../config">Configuration</a>
+    </nav>
+  </div>
+  <main class="mdl-layout__content">
+    <div id="mdl-grid" class="mdl-grid">
+         	   <div id="video-loading" style="width:100%"class="mdl-progress mdl-js-progress"></div>
+
+      <div id="video-container" class="mdl-cell mdl-cell--8-col">
+      	 <div class="mdl-shadow--2dp">
+           <video id="set-video" width="100%" height="auto" >
+    		<source src="https://storage.googleapis.com/set-videos/digis/{{ name }}.mp4" type="video/mp4" preload>
+    	   </video>
+ 
+    	   <div id="progress-bar">
+   	         <div id="timeBar"></div>
+   	       </div>
+        </div>
+  	    <div id="timeline"></div> 	   
+          
+        <canvas id="segment-status-bar"></canvas>
+
+        <div id="player-controls">	
+	      <button id="prev-segment" onclick="prev()" class="mdl-button mdl-button--icon mdl-js-button carousel-button" title="Previous">
+	        <i class="material-icons carousel-button__icon">navigate_before</i>
+	      </button>
+	      <button id="carousel-btn-play-pause" class="mdl-button mdl-button--icon mdl-js-button carousel-button" title="Play">
+	        <i class="material-icons carousel-button__icon">play_circle_outline</i>
+	      </button>
+	      <button id="next-segment" onclick="seek()" class="mdl-button mdl-button--icon mdl-js-button carousel-button" title="Next">
+	        <i class="material-icons carousel-button__icon">navigate_next</i>
+	      </button>
+	       <br><input type="range" step="0.5" min="0.5" max="10" value="1" id="rateSlider">
+    	  <span id="rateOutput" aria-live="polite"></span>
+          <div id="current-time"></div>
+        </div>
+    
+      </div>
+
+
+      <div class="mdl-cell mdl-cell--4-col">
+      
+	      <div class="set-card-square mdl-card mdl-shadow--2dp">
+	        <div class="mdl-card__title">
+
+				  <h3 id="segment-title-text" class="mdl-card__title-text"></h3>	    
+	        </div>
+	        <div id="segment-support-text" class="mdl-card__supporting-text"></div>
+		   <div class="mdl-card__actions mdl-card--border">
+		     <div id="radios"> 
+			   <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="keep-segment">
+	      			<input type="radio" id="keep-segment" class="mdl-radio__button" name="options" value="keep" checked>
+	      			<span class="mdl-radio__label">Keep</span>
+	    	    </label>
+	    		&nbsp;&nbsp;&nbsp;&nbsp;<label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="remove-segment">
+	      			<input type="radio" id="remove-segment" class="mdl-radio__button" name="options" value="remove">
+	      			<span class="mdl-radio__label">Remove</span>
+	    		</label>
+	    	    &nbsp;&nbsp;&nbsp;&nbsp;<label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="exclude-segment">
+	      			<input type="radio" id="exclude-segment" class="mdl-radio__button" name="options" value="exclude">
+	      			<span class="mdl-radio__label">Exclude</span>
+	    		</label>
+               </div>   
+	    	</div>
+		  </div><br>
+	      <div id="file-container" class="set-card-square mdl-card mdl-shadow--2dp">
+	        <div class="mdl-card__title">
+	          <div id="file-title-text" class="mdl-card__title-text">File Information</div>	 
+	          				  <!-- Number badge -->
+                  <span id="reviewed-badge" class="mdl-badge" data-badge="0">Reviewed</span>
+
+
+
+	        </div>
+	        <div id="file-info" class="mdl-card__supporting-text"></div>
+	        <br><br>
+	        <div id="save-updates" class="mdl-card__actions mdl-card--border">
+	    	 <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Save Updates</a>
+	  	   </div>
+
+	      </div>
+	    </div>
+   </div>
+ 
+   </main>
+
+
+  
+  </div>
+  <script>
+/*eslint-env jquery */
+/*globals google new_start:true*/
+
+var vid = document.getElementById("set-video"); 
+var cur = 0;
+var ratio;
+var loaded = 0;
+var nav_width = 0;
+var container_width = document.getElementById("mdl-grid").offsetWidth;
+ 
+
+var scenes_url = "../static/{{ name }}" + "_visual_scenes.csv"; 
+var scenes=[];
+
+google.charts.load("current", {"packages":["timeline"]});	
+$("#current-time").draggable();
+$("#player-controls").draggable();
+
+vid.addEventListener('progress', function(evt) {
+    var total = vid.duration;
+    loaded = loaded + 8;
+    document.querySelector('.mdl-js-progress').addEventListener('mdl-componentupgraded', function() {
+         this.MaterialProgress.setProgress(loaded);
+         this.MaterialProgress.setBuffer(container_width-loaded);
+      });
+      if (loaded !==8) {
+        document.querySelector('.mdl-js-progress').MaterialProgress.setProgress(loaded);        
+        document.querySelector('.mdl-js-progress').MaterialProgress.setBuffer(100-loaded);
+     }
+      if (!isNaN(total)) {
+        $("#video-loading").fadeOut();
+      }
+   });
+
+
+var rateOutput = document.getElementById("rateOutput");
+var rateSlider = document.getElementById("rateSlider");
+        
+  rateSlider.onchange = function() {
+     // When the slider is moved, changed the video's playback rate
+     vid.playbackRate = rateSlider.value;
+  };
+        
+  vid.onplay = function() {
+    // We can only change the playbackRate once the video has started playing
+    vid.playbackRate = rateSlider.value;
+  };
+        
+  vid.onratechange = function() {
+     // When the playback rate changes, display the new value
+     rateOutput.textContent = vid.playbackRate+"x";
+  };
+        
+  rateOutput.textContent = rateSlider.value + "x";
+  
+function drawSegmentStatus() {
+
+  var c = document.getElementById("segment-status-bar");
+  c.width = nav_width;
+  c.height = 8;
+  var ctx = c.getContext("2d");
+  //ctx.clearRect(0, 0, nav_width, 8);
+        //ctx.fillStyle = "#fff";
+  //ctx.fillRect(0, 0, nav_width, 8);
+  scenes.forEach(function(e) {
+    var start = e[0]/1000;
+    var end = e[1]/1000;
+    var len = vid.duration;
+    var new_start = Math.round(start * (nav_width/len));
+    var new_end = Math.round(end * (nav_width/len));
+    var new_width =  new_end-new_start;
+
+	if (e.segment === "remove") {
+      ctx.fillStyle = "#a00";
+    }
+
+    if (e.segment === "keep") {
+      ctx.fillStyle = "#080";
+      if (e.reviewed === true) {
+      	ctx.fillStyle = "#0f0";
+      }
+    }
+
+    if (e.segment === "exclude") {
+      ctx.fillStyle = "#ff0";
+    }
+    ctx.fillRect(new_start, 0, new_width, 8);
+  });
+ }
+
+
+$(window).resize(function(){
+	nav_width = document.getElementById("video-container").offsetWidth;
+   
+    ratio =  nav_width / vid.duration;
+
+    drawChart(scenes);
+    drawSegmentStatus();
+});
+  
+function componentToHex(c) {
+    var cInt = Math.floor(c * 255);
+    var hex = cInt.toString(16);
+    return hex.length === 1 ? "0" + hex : hex;
+}
+
+function rgbToHex(r, g, b) {
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+
+function drawChart(scenes) {
+ var chart = new google.visualization.Timeline(document.getElementById("timeline"));
+ var data = new google.visualization.DataTable();
+     data.addColumn({ type: "string", id: "scenes" });
+     data.addColumn({ type: "string", id: "segment" });
+     data.addColumn({ type: "datetime", id: "Start" });
+     data.addColumn({ type: "datetime", id: "End" });
+ scenes.forEach(function(e,i) {    
+   var start = new Date(0,0,0,0,0,e[0]/1000);
+   var end = new Date(0,0,0,0,0,e[1]/1000);
+   var row = ["Scenes", "segment #"+(i+1)+" "+start.getHours()+":"+start.getMinutes()+":"+start.getSeconds()
+             +" - "+end.getHours()+":"+end.getMinutes()+":"+end.getSeconds(), start, end];
+   data.addRow(row);    
+ });
+    
+ nav_width = document.getElementById("video-container").offsetWidth;
+
+ var options = {
+   timeline: { 
+     showRowLabels: false,
+     showBarLabels: false,
+     barLabelStyle: {fontName: "Arial", fontSize: "12"},
+     rowLabelStyle: {fontName: "Arial", fontSize: "12"}
+     },
+     colors: new Array(),  
+     width: nav_width,
+  };
+
+  scenes.forEach(function(e) {
+    options.colors.push(rgbToHex(e[2], e[3], e[4]));
+  });
+
+
+ // The select handler. Call the chart's getSelection() method
+ function selectHandler() {
+   var selectedItem = chart.getSelection(); 
+      cur = selectedItem[0].row - 1; // seek increments
+      seek(); 
+ }
+  google.visualization.events.addListener(chart, "select", selectHandler);
+  chart.draw(data,options);  
+}
+
+function initScene(item) {
+  item.segment = "keep";
+  item.reviewed = false;
+}
+
+function processData(allText) {
+   scenes = $.csv.toArrays(allText);
+   scenes.forEach(initScene);
+ 
+   updateSegmentInfo();
+   google.charts.setOnLoadCallback(drawChart(scenes));
+
+}  
+
+var i = setInterval(function() {
+	  if(vid.readyState > 0) {
+          nav_width = document.getElementById("video-container").offsetWidth;
+          
+          ratio =  nav_width / vid.duration;
+		  clearInterval(i);
+
+          if (scenes.length === 0) {	
+          $.ajax({
+            type: "GET",
+            url: scenes_url,
+            dataType: "text",
+            success: function(data) {processData(data);}
+          });
+        }
+	  }
+  }, 200);    
+
+
+document.onkeydown = function(e) {
+
+
+    switch (e.keyCode) {
+        case 37:
+            $("#prev-segment").trigger("click");
+            break;
+       case 38:
+            $("#prev-segment").trigger("click");
+            break;            
+        case 39:
+            $("#next-segment").trigger("click");
+            break;
+        case 40:
+            $("#next-segment").trigger("click");
+            break;
+        case 75: // the letter k
+            scenes[cur].segment = "keep";
+            $("#keep-segment").trigger("click");
+            updateSegmentInfo();
+
+            break;
+        case 82: // the letter r
+            scenes[cur].segment = "remove";
+            $("#remove-segment").trigger("click");
+            updateSegmentInfo();
+
+            break;
+        case 69: // the letter e
+            scenes[cur].segment = "exclude";
+            $("#exclude-segment").trigger("click");
+            updateSegmentInfo();
+
+            break;
+             
+    }
+    //e.preventDefault();
+};
+function prev() {
+  cur -= 1;
+  if (cur < 0) { 
+    cur = scenes.length;
+  }
+  vid.currentTime = scenes[cur][0]/1000; 
+  updateSegmentInfo();
+   updatebar(vid.currentTime * ratio);
+}
+
+function play() {
+vid.play();
+}
+
+function pause() {
+vid.pause();
+}
+
+
+function seek() {  
+  cur += 1;
+  if (cur === scenes.length) {
+    cur = 0;
+  }
+  vid.currentTime = scenes[cur][0]/1000; 
+  updateSegmentInfo();
+  updatebar(vid.currentTime * ratio);
+} 
+
+
+function updateSegmentInfo() {
+  $("#segment-title-text").html("Segment &nbsp;&nbsp;" + (cur+1));
+   
+  var start_time = new Date(0,0,0,0,0,scenes[cur][0]/1000);
+  var end_time = new Date(0,0,0,0,0,scenes[cur][1]/1000);
+  var duration = new Date(0,0,0,0,0,(scenes[cur][1]- scenes[cur][0])/1000);
+  var rgb = rgbToHex(scenes[cur][2], scenes[cur][3], scenes[cur][4]);  
+  var duration_text = "<br>duration: <b>"+("00" + duration.getHours()).slice(-2)+":"+("00" + duration.getMinutes()).slice(-2)+":"+("00" + duration.getSeconds()).slice(-2)+"</b>";
+  var start_end_text = "<br><br>start-end: <b>"+ ("00" + start_time.getHours()).slice(-2)+":"+("00" + start_time.getMinutes()).slice(-2)+":"+("00" + start_time.getSeconds()).slice(-2) + " - "+("00" + end_time.getHours()).slice(-2)+":"+("00" + end_time.getMinutes()).slice(-2)+":"+("00" +end_time.getSeconds()).slice(-2)+"</b>";
+  $(".mdl-card__supporting-text").html(duration_text+start_end_text);
+  $(".mdl-card__supporting-text").append("<br><br>rgb score:<div style=\"padding:5px;display: inline;text-align:center;width:240px;color:white;background-color:"+rgb+"\">"+rgb+"</div>");
+  $(".mdl-card__supporting-text").append("<br><br>segment reviewed: " + scenes[cur].reviewed);
+ //updateFileInfo();
+  $("#segment-support-text").css('background-color', rgb);
+  $("#segment-support-text").css('color', 'white');
+  
+  scenes[cur].reviewed=true;
+  
+
+  if (scenes[cur].segment === "keep") {
+  	$("#keep-segment").trigger("click");
+  }
+  if (scenes[cur].segment === "remove") {
+    $("#remove-segment").trigger("click");
+  }
+  if (scenes[cur].segment === "exclude") {
+      $("#exclude-segment").trigger("click");
+  }
+
+    updatebar(vid.currentTime * ratio);
+    updateFileInfo();
+ 	drawSegmentStatus();
+ 	
+ }
+
+
+	$('.mdl-button').click(function(){
+		
+		console.log("save updates");
+		var _partnerName = "partner_1";
+		//var _fileName = $('#txtFileName').val();
+		
+		//var _fileName = "{{ name }}.mp4";
+		var _fileName = "youtube_demo.mp4";
+
+		var _encoder = "libav";		
+		/*
+		var scene1 = new Scene(1, 0, 180, 0, 0, 0, "remove", true);
+		var scene2 = new Scene(2, 180, 240, 0, 0, 0, "keep", true);
+		var scene3 = new Scene(3, 240, 300, 0, 0, 0, "keep", true);
+		var scene4 = new Scene(4, 360, 420, 0, 0, 0, "exclude", true);
+		var scene5 = new Scene(5, 420, 480, 0, 0, 0, "remove", true);
+		var scene6 = new Scene(6, 480, 540, 0, 0, 0, "keep", true);
+		var sceneArray = new Array();
+		sceneArray.push(scene1);
+		sceneArray.push(scene2);
+		sceneArray.push(scene3);
+		sceneArray.push(scene4);
+		sceneArray.push(scene5);
+		sceneArray.push(scene6);
+		*/
+		var sceneArray = new Array();
+		var scene1 = new Scene(1, 0, 5, 0, 0, 0, "remove", true);
+		var scene2 = new Scene(2, 5, 12, 0, 0, 0, "keep", true);
+		var scene3 = new Scene(3, 12, 20, 0, 0, 0, "keep", true);
+
+		sceneArray.push(scene1);
+		sceneArray.push(scene2);
+		sceneArray.push(scene3);
+
+	
+	
+		var scenePro = new SceneProcessor(_partnerName, _fileName, sceneArray);
+	    var _segmentForFFMPEG = scenePro.getSegmentsForFFMPEG();
+		var _segmentForLibAV = scenePro.getSegmentsForLibAV();
+		var _referenceExclusions = scenePro.getReferenceExclusions()
+		
+		var dataToSend = new Object();
+		dataToSend.exclusions = _referenceExclusions;
+		dataToSend.segmentForFFMPEG = _segmentForFFMPEG;
+		dataToSend.segmentForLibAB = _segmentForLibAV;
+		dataToSend.fileName = _fileName;
+		dataToSend.partnerName = _partnerName;
+		dataToSend.encoder = _encoder;
+        console.log(dataToSend);
+        
+		$.ajax({
+			type: 'POST',
+			url: '/signUpUser',
+			data: JSON.stringify(dataToSend),
+			contentType: "application/json; charset=utf-8",
+			traditional: true,
+			success: function (response){
+				console.log(response);
+				var responseAsObject = JSON.parse(response);
+				var received_file = responseAsObject.received_file;
+				var received_exclusions = responseAsObject.received_exclusions;
+				var received_python_segments = responseAsObject.received_python_segments;
+				var received_message_id = responseAsObject.message_id;
+				
+				//$('#txtExclusions').val(received_exclusions);
+				console.log(received_exclusions);
+				//$('#txtPythonSegments').val(received_python_segments);
+				console.log(received_python_segments);
+				//$('#txtMessage_id').val(received_message_id);
+			    console.log(received_message_id);
+			},
+			error: function(error){
+				console.log(error);
+			}
+		});
+	});
+
+
+
+
+
+
+$('input[type=radio]').on('change', function() {
+     switch($(this).val()) {
+         case 'keep':
+             scenes[cur].segment="keep";
+             break;
+         case 'remove':
+             scenes[cur].segment="remove";
+             break;
+         case 'exclude':
+             scenes[cur].segment="exclude";
+             break;
+
+     }
+     drawSegmentStatus();
+});
+
+function updateFileInfo() {
+	if(vid.readyState > 0) {
+ 		//var minutes = parseInt(vid.duration / 60, 10);
+		//var seconds = vid.duration % 60;
+      var duration = new Date(0,0,0,0,0,vid.duration);
+      var duration_text = "<br>original duration: <b>"+("00" + duration.getHours()).slice(-2)+":"+("00" + duration.getMinutes()).slice(-2)+":"+("00" + duration.getSeconds()).slice(-2)+"</b>";
+    $("#file-info").html("<b>Filename</b>: "+"{{ name }}"+"</b><br>");
+    
+    $("#file-info").append("<br>number of segments: <b>" + scenes.length + "</b>");
+    var cut_duration = 0;
+    var segments_removed = 0;
+    var segments_excluded = 0;
+    var segments_reviewed = 0;
+    scenes.forEach(function(e) {
+    	
+      if (e.reviewed === true) {
+      	segments_reviewed += 1;
+      } 	
+      if (e.segment !== "remove") {
+        cut_duration += (e[1]- e[0])/1000;
+        if (e.segment === "exclude") {
+          segments_excluded += 1;
+        }
+      }
+      else {
+         segments_removed += 1;
+      }
+    })
+    var cut_duration_date = new Date(0,0,0,0,0,cut_duration);
+    var cur_duration_text = "<br>new duration: <b>"+("00" + cut_duration_date.getHours()).slice(-2)+":"+("00" + cut_duration_date.getMinutes()).slice(-2)+":"+("00" + cut_duration_date.getSeconds()).slice(-2)+"</b>";
+    var badge = document.querySelector("#reviewed-badge");
+    
+    badge.setAttribute("data-badge",segments_reviewed);
+    
+    $("#file-info").append(cur_duration_text + duration_text + "<br>segments removed: <b>"+segments_removed+"</b><br>segments excluded: <b>"+segments_excluded+"</b><br>segments reviewed: <b>"+segments_reviewed+"</b>"+" of "+scenes.length);
+   }
+}
+
+$( document ).ready(function() {
+    console.log( "ready!" );
+    document.querySelector('#video-loading').addEventListener('mdl-componentupgraded', function() {});
+
+});
+
+	var timeDrag = false;	/* check for drag event */
+	$('#progress-bar').on('mousedown', function(e) {
+		timeDrag = true;
+		updatebar(e.pageX-18);
+	});
+	$(document).on('mouseup', function(e) {
+		if(timeDrag) {
+			timeDrag = false;
+			updatebar(e.pageX-18);
+		}
+	});
+	$(document).on('mousemove', function(e) {
+		if(timeDrag) {
+			updatebar(e.pageX-18);
+		}
+	});
+	var updatebar = function(x) {
+		var progress = $('#progress-bar');
+		
+
+		var maxduration = vid.duration;
+		//var position = x - progress.offset().left;
+		var position = x;
+		var percentage = 100 * position / progress.width();
+
+		
+		if(percentage > 100) {
+			percentage = 100;
+		}
+		if(percentage < 0) {
+			percentage = 0;
+		}
+		$('#timeBar').css('width',percentage+'%');	
+		vid.currentTime = maxduration * percentage / 100;
+	};
+
+
+
+      document.querySelector('#carousel-btn-play-pause').addEventListener('click', function (e) {
+        // Toggle play icon
+        var i = this.querySelector('i');
+        var action = i.innerText === 'play_circle_outline' ? 'play' : 'pause';
+        i.textContent = action === 'play' ? 'pause_circle_outline' : 'play_circle_outline';
+        
+        if (action === 'play') {
+        	vid.play();
+        }
+        else {
+        	vid.pause();
+        }
+        
+      });
+
+setInterval(clockUpdate, 10);
+
+function clockUpdate() {
+  var time = new Date(0,0,0,0,0,vid.currentTime);
+  if (scenes.length !== 0) {
+  //if (typeof scenes !=="undefined") {
+    scenes.forEach(function(e,i) {
+    
+      time = new Date(0,0,0,0,0,vid.currentTime);
+      var start_time = new Date(0,0,0,0,0,e[0]/1000);
+      var end_time = new Date(0,0,0,0,0,e[1]/1000);
+      
+      if (time>=start_time && time<end_time) {
+        if (!vid.paused) {
+            if (e.segment==="remove") {
+              var st = cur+1;
+              // find next playable segment
+              for (var j=st; j<scenes.length; ++j) {
+                if (scenes[j].segment !== "remove") {
+                vid.currentTime = scenes[j][0]/1000;
+                break;
+                }
+              }
+            }
+        }
+        if (cur !== i) {                                  
+          cur = i;
+          updateSegmentInfo();
+        }
+       }
+    });
+  }
+
+  //show clock
+  $("#current-time").html(("00" + time.getHours()).slice(-2)+":"+("00" + time.getMinutes()).slice(-2)+":"+("00" + time.getSeconds()).slice(-2));
+
+}
+</script>
+</html> 
+ 
+ 
+ 
+ 
+ 
+ 
