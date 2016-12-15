@@ -8,9 +8,11 @@ import pprint
 import shlex
 import json
 
+PROJECT_ID = 'yt-set'
+TOPIC = 'projects/{}/topics/youtube-partners'.format(PROJECT_ID)
 
-PROJECT_ID = 'set-cloud-gaston'
-TOPIC = 'projects/{}/topics/youtube_partners'.format(PROJECT_ID)
+#PROJECT_ID = 'set-cloud-gaston'
+#TOPIC = 'projects/{}/topics/youtube_partners'.format(PROJECT_ID)
 #VIDEO_NAME = 'anim_card_flip.mp4'
 
 def trim_blacks_reencoding_command(file_name, content_segments):
@@ -79,8 +81,8 @@ def useAVCONV(message_id, fileName,  segmentForLibAB):
     return "SUCCESS"
 
 def uploadFileFromGCS(message_id, fileName):
-    client = storage.Client('set-cloud-gaston')
-    bucket = client.bucket('set-cloud-gaston.appspot.com')
+    client = storage.Client('yt-set')
+    bucket = client.bucket('yt-set.appspot.com')
     fileNameParts = fileName.split(".")
     newFileName = fileNameParts[0] + "_edited." + fileNameParts[1]
     blob = bucket.blob(newFileName)
@@ -89,8 +91,8 @@ def uploadFileFromGCS(message_id, fileName):
     sys.stdout.write("SUCCESS")
 
 def downloadFileFromGCS(message_id, fileName):
-    client = storage.Client('set-cloud-gaston')
-    bucket = client.bucket('set-cloud-gaston.appspot.com')
+    client = storage.Client('yt-set')
+    bucket = client.bucket('yt-set.appspot.com')
     blob = bucket.blob(fileName)
     tempFile = "/tmp/" + fileName
     with open(tempFile, 'w') as f:
@@ -138,8 +140,8 @@ def useFFMPEG(message_id, fileName, segmentsString):
 
 if __name__ == '__main__':    
     pubsub_client = pubsub.Client(PROJECT_ID)
-    topic = pubsub_client.topic("youtube_partners")
-    subscription = topic.subscription("set_videos")
+    topic = pubsub_client.topic("youtube-partners")
+    subscription = topic.subscription("set-videos")
     print("worker.main Polling the topic...\n")
     while True:
         results = subscription.pull(return_immediately=True, max_messages=1)

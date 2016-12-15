@@ -210,8 +210,8 @@
 	        </div>
 	        <div id="file-info" class="mdl-card__supporting-text"></div>
 	        <br><br>
-	        <div id="save-updates" class="mdl-card__actions mdl-card--border">
-	    	 <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Save Updates</a>
+	        <div class="mdl-card__actions mdl-card--border">
+	    	 <a id="save-updates" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Save Updates</a>
 	  	   </div>
 
 	      </div>
@@ -515,14 +515,14 @@ function updateSegmentInfo() {
  }
 
 
-	$('.mdl-button').click(function(){
+	$('#save-updates').click(function(){
 		
 		console.log("save updates");
-		var _partnerName = "partner_1";
+		var _partnerName = "partner_2";
 		//var _fileName = $('#txtFileName').val();
 		
-		//var _fileName = "{{ name }}.mp4";
-		var _fileName = "MM41916160001.mp4";
+		var _fileName = "{{ name }}.mp4";
+		//var _fileName = "MM41916160001.mp4";
 
 		var _encoder = "ffmpeg_cat";		
 

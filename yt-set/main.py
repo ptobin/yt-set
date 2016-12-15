@@ -8,11 +8,11 @@ import logging
 from gcloud import storage, pubsub
 
 
-#PROJECT_ID = 'yt-set'
-#TOPIC = 'youtube-partners'
+PROJECT_ID = 'yt-set'
+TOPIC = 'youtube-partners'
 
-PROJECT_ID = 'set-cloud-gaston'
-TOPIC = 'youtube_partners'
+#PROJECT_ID = 'set-cloud-gaston'
+#TOPIC = 'youtube_partners'
 
 app = Flask(__name__)
 app.config['SECRET_KEY']='test'
