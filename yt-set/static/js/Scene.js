@@ -61,7 +61,9 @@ Scene.prototype.getEndTime = function() {
 }
 
 Scene.prototype.getDurationAsString = function() {
-  return this.convertSecondsToHHMMSS(this.new_end - this.new_start);
+  var _dur = this.new_end - this.new_start;	
+  var _fixedDur = _dur.toFixed(1);
+  return this.convertSecondsToHHMMSS(_fixedDur);
 }
 
 Scene.prototype.convertSecondsToHHMMSS = function(seconds){

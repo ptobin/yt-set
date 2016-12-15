@@ -28,6 +28,10 @@ app.debug = True
 def video(name):
   return render_template("video.html", name=name)
 
+@app.route('/edited_video/<name>')
+def editedVideo(name):
+  return render_template("edited_video.html", name=name)
+
 @app.route('/deliver')
 def deliver():
   return render_template("deliver.html")

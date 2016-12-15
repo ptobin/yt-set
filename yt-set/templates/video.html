@@ -522,32 +522,24 @@ function updateSegmentInfo() {
 		//var _fileName = $('#txtFileName').val();
 		
 		//var _fileName = "{{ name }}.mp4";
-		var _fileName = "youtube_demo.mp4";
+		var _fileName = "MM41916160001.mp4";
 
-		var _encoder = "libav";		
-		/*
-		var scene1 = new Scene(1, 0, 180, 0, 0, 0, "remove", true);
-		var scene2 = new Scene(2, 180, 240, 0, 0, 0, "keep", true);
-		var scene3 = new Scene(3, 240, 300, 0, 0, 0, "keep", true);
-		var scene4 = new Scene(4, 360, 420, 0, 0, 0, "exclude", true);
-		var scene5 = new Scene(5, 420, 480, 0, 0, 0, "remove", true);
-		var scene6 = new Scene(6, 480, 540, 0, 0, 0, "keep", true);
-		var sceneArray = new Array();
-		sceneArray.push(scene1);
-		sceneArray.push(scene2);
-		sceneArray.push(scene3);
-		sceneArray.push(scene4);
-		sceneArray.push(scene5);
-		sceneArray.push(scene6);
-		*/
-		var sceneArray = new Array();
-		var scene1 = new Scene(1, 0, 5, 0, 0, 0, "remove", true);
-		var scene2 = new Scene(2, 5, 12, 0, 0, 0, "keep", true);
-		var scene3 = new Scene(3, 12, 20, 0, 0, 0, "keep", true);
+		var _encoder = "ffmpeg_cat";		
 
-		sceneArray.push(scene1);
-		sceneArray.push(scene2);
-		sceneArray.push(scene3);
+		var sceneArray = new Array();
+		for(i = 0; i < scenes.length ; i++){
+			var sc = scenes[i];
+			var _index = i;
+			var _start = (sc[0]/1000).toFixed(1);
+			var _end = (sc[1]/1000).toFixed(1);
+			var _red = sc[2];
+			var _green = sc[3];
+			var _blue = sc[4];
+			var _reviewed = sc.reviewed;
+			var _action = sc.segment;
+			var _scene = new Scene(_index,_start, _end, _red, _green, _blue, _action, _reviewed);
+			sceneArray.push(_scene);
+		}
 
 	
 	
