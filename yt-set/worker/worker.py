@@ -81,19 +81,19 @@ def useAVCONV(message_id, fileName,  segmentForLibAB):
     return "SUCCESS"
 
 def uploadFileFromGCS(message_id, fileName):
-    client = storage.Client('yt-set')
-    bucket = client.bucket('yt-set.appspot.com')
+    client = storage.Client('set-cloud')
+    bucket = client.bucket('set-videos')
     fileNameParts = fileName.split(".")
     newFileName = fileNameParts[0] + "_edited." + fileNameParts[1]
-    blob = bucket.blob(newFileName)
+    blob = bucket.blob('digis/'+ newFileName)
     tmpPath = '/tmp/' + newFileName
     blob.upload_from_file(open(tmpPath))
     sys.stdout.write("SUCCESS")
 
 def downloadFileFromGCS(message_id, fileName):
-    client = storage.Client('yt-set')
-    bucket = client.bucket('yt-set.appspot.com')
-    blob = bucket.blob(fileName)
+    client = storage.Client('set-cloud')
+    bucket = client.bucket('set-videos')
+    blob = bucket.blob('digis/'+ fileName)
     tempFile = "/tmp/" + fileName
     with open(tempFile, 'w') as f:
         print("about to download {}".format(tempFile))

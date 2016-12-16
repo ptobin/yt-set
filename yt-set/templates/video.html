@@ -234,8 +234,9 @@ var loaded = 0;
 var nav_width = 0;
 var container_width = document.getElementById("mdl-grid").offsetWidth;
  
-
-var scenes_url = "../static/{{ name }}" + "_visual_scenes.csv"; 
+var scenes_url= 'https://www.googleapis.com/storage/v1/b/set-videos/o/digis%2f{{ name }}_visual_scenes.csv?alt=media';
+ 
+//var scenes_url = "../static/{{ name }}" + "_visual_scenes.csv"; 
 var scenes=[];
 
 google.charts.load("current", {"packages":["timeline"]});	
